@@ -164,3 +164,8 @@ logs/
 # Local configuration files
 config.local.py
 settings.local.py
+
+# ChatBot specific
+chatbot.db
+logs/
+.env.local

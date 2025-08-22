@@ -1,12 +1,13 @@
 import sqlite3
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 class Database:
-    def __init__(self, db_path='chatbot.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or Config.DATABASE_PATH
         self.init_database()
     
     def get_connection(self):
@@ -23,7 +24,7 @@ class Database:
                 cursor.execute("PRAGMA table_info(historico)")
                 columns = [column[1] for column in cursor.fetchall()]
                 
-                # Se a tabela não existe, criar com o novo campo user
+                # Se a tabela não existe
                 if not columns:
                     cursor.execute('''
                         CREATE TABLE historico (
@@ -35,11 +36,7 @@ class Database:
                         )
                     ''')
                     logger.info("Tabela historico criada com campo user")
-                else:
-                    # Se a tabela existe mas não tem o campo user, adicionar
-                    if 'user' not in columns:
-                        cursor.execute('ALTER TABLE historico ADD COLUMN user TEXT NOT NULL DEFAULT "aluno"')
-                        logger.info("Campo user adicionado à tabela historico")
+
                 
                 # Criar tabela contexto
                 cursor.execute('''
@@ -128,6 +125,63 @@ class Database:
                 logger.info("Contexto limpo com sucesso")
         except Exception as e:
             logger.error(f"Erro ao limpar contexto: {str(e)}")
+    
+    def limpar_historico_inativo(self, horas_inativo=24):
+        """
+        Remove mensagens do histórico de usuários inativos
+        
+        Args:
+            horas_inativo: Número de horas para considerar usuário inativo
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                limite_tempo = datetime.now() - timedelta(hours=horas_inativo)
+                
+                cursor.execute('''
+                    DELETE FROM historico 
+                    WHERE horario_data < ?
+                ''', (limite_tempo,))
+                
+                mensagens_removidas = cursor.rowcount
+                conn.commit()
+                
+                logger.info(f"Limpeza concluída: {mensagens_removidas} mensagens removidas de usuários inativos há mais de {horas_inativo}h")
+                return mensagens_removidas
+                
+        except Exception as e:
+            logger.error(f"Erro ao limpar histórico inativo: {str(e)}")
+            return 0
+    
+    # ===== MÉTODOS DE VIEW =====
+    
+    def obter_mensagens_por_numero(self, numero):
+        """Obtém todas as mensagens de um número específico usando a view"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT mensagem, user, horario_data
+                    FROM mensagens_por_numero
+                    WHERE numero = ?
+                    ORDER BY horario_data DESC
+                ''', (numero,))
+                return cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erro ao obter mensagens por número: {str(e)}")
+            return []
+    
 
-# Instância global do banco de dados
+    def obter_contexto(self):
+        """Obtém toda a documentação do contexto"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT documentacao FROM contexto')
+                return [row[0] for row in cursor.fetchall()]
+        except Exception as e:
+            logger.error(f"Erro ao obter contexto: {str(e)}")
+            return []
+
+# Instância global do banco de dados unificado
 db = Database()

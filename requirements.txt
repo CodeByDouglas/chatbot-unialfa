@@ -1,6 +1,17 @@
+# Web Framework
 Flask==2.3.3
 Werkzeug==2.3.7
+
+# HTTP Requests
 requests==2.31.0
+
+# Environment Variables
 python-dotenv==1.0.0
+
+# Task Scheduler
 APScheduler==3.10.4
+
+# Development and Testing (optional)
+pytest==7.4.0
+pytest-flask==1.2.0
 

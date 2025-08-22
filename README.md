@@ -10,24 +10,29 @@ Um chatbot inteligente desenvolvido para a UNIALFA que utiliza a API do Groq par
 - **Contexto Dinâmico**: Sistema de documentação atualizável via API
 - **Limpeza Automática**: Remove histórico de usuários inativos há mais de 24h
 - **Logs Detalhados**: Sistema completo de logging para monitoramento
+- **Arquitetura Limpa**: Código organizado seguindo melhores práticas
 
 ## 🏗️ Arquitetura
 
 ```
 ChatBot UNIALFA/
 ├── app/
-│   ├── __init__.py              # Configuração Flask
-│   └── controler/
-│       ├── Webhook.py           # Endpoints do webhook
-│       ├── Request_grooq.py     # Integração Groq API
-│       └── atualizar_contexto.py # Gerenciamento de contexto
-├── database/
-│   ├── __init__.py
-│   └── envento_limpar_historico.py # Limpeza automática
-├── db_manager.py                # Gerenciamento do banco SQLite
-├── views.py                     # Consultas ao banco
-├── run.py                       # Servidor Flask
-└── requirements.txt             # Dependências
+│   ├── __init__.py              # Application Factory
+│   ├── controllers/             # Controllers (Rotas/Endpoints)
+│   │   ├── __init__.py
+│   │   ├── webhook.py          # Webhook do WhatsApp
+│   │   └── context.py          # Gerenciamento de contexto
+│   ├── services/               # Serviços de negócio
+│   │   ├── __init__.py
+│   │   ├── groq_service.py     # Integração Groq API
+│   │   └── cleanup_service.py  # Limpeza automática
+│   └── utils/                  # Utilitários
+│       ├── __init__.py
+│       └── whatsapp_utils.py   # Utilitários WhatsApp
+├── config.py                   # Configurações centralizadas
+├── db_manager.py               # Gerenciamento do banco SQLite
+├── run.py                      # Ponto de entrada da aplicação
+└── requirements.txt            # Dependências
 ```
 
 ## 📋 Pré-requisitos
@@ -65,8 +70,10 @@ pip install -r requirements.txt
 
 5. **Configure as variáveis de ambiente:**
 ```bash
-# Crie um arquivo .env (opcional)
+# Crie um arquivo .env
 GROQ_API_KEY=sua_chave_aqui
+SECRET_KEY=sua_chave_secreta
+FLASK_DEBUG=True
 ```
 
 ## 🚀 Execução
@@ -86,9 +93,7 @@ O servidor estará disponível em `http://localhost:5000`
 - **POST** `/atualizar-contexto` - Atualiza documentação
 - **GET** `/contexto` - Consulta documentação atual
 
-### Histórico
-- **GET** `/historico/<numero>` - Histórico por número
-- **GET** `/historico` - Todo o histórico
+
 
 ## 🗄️ Banco de Dados
 
@@ -103,10 +108,27 @@ O servidor estará disponível em `http://localhost:5000`
 - `id` - Identificador único
 - `documentacao` - Texto da documentação
 
+## ⚙️ Configuração
+
+O projeto usa um sistema de configuração centralizado em `config.py`:
+
+```python
+# Configurações disponíveis
+GROQ_API_KEY=sua_chave_aqui
+SECRET_KEY=sua_chave_secreta
+FLASK_DEBUG=True
+DATABASE_PATH=chatbot.db
+HOST=0.0.0.0
+PORT=5000
+LOG_LEVEL=INFO
+CLEANUP_INTERVAL_HOURS=24
+INACTIVE_USER_HOURS=24
+```
+
 ## 🔧 Configuração WhatsApp Business API
 
 1. Configure o webhook URL no painel do WhatsApp Business
-2. Implemente a função `enviar_resposta_whatsapp()` em `Webhook.py`
+2. Implemente a função `enviar_resposta_whatsapp()` em `webhook.py`
 3. Adicione autenticação da API
 
 ## 📝 Exemplo de Uso
@@ -149,6 +171,16 @@ O sistema gera logs detalhados para:
 - Chamadas à API do Groq
 - Operações no banco de dados
 - Limpeza automática
+
+## 🧪 Testes
+
+```bash
+# Instalar dependências de teste
+pip install pytest pytest-flask
+
+# Executar testes
+pytest
+```
 
 ## 🤝 Contribuição
 

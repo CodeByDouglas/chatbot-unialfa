@@ -13,9 +13,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Cria o blueprint
-atualizar_contexto_bp = Blueprint('atualizar_contexto', __name__)
+context_bp = Blueprint('context', __name__)
 
-@atualizar_contexto_bp.route('/atualizar-contexto', methods=['POST'])
+@context_bp.route('/atualizar-contexto', methods=['POST'])
 def atualizar_contexto():
     """
     Endpoint para atualizar a documentação no banco de dados
@@ -80,16 +80,14 @@ def atualizar_contexto():
             "message": f"Erro interno: {str(e)}"
         }), 500
 
-@atualizar_contexto_bp.route('/contexto', methods=['GET'])
+@context_bp.route('/contexto', methods=['GET'])
 def obter_contexto():
     """
     Endpoint para obter a documentação atual
     """
     try:
-        from views import views
-        
         # Obtém a documentação do banco
-        documentacoes = views.obter_contexto()
+        documentacoes = db.obter_contexto()
         
         if documentacoes:
             return jsonify({
