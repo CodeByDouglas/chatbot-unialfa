@@ -1,6 +1,11 @@
 import requests
 import json
 import logging
+import os
+from dotenv import load_dotenv
+
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +22,12 @@ def enviar_para_groq(historico_mensagens, documentacao, mensagem_atual):
         Resposta da API do Groq
     """
     try:
-        # Chave da API do Groq
-        api_key = "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"
+        # Chave da API do Groq - agora usando variável de ambiente
+        api_key = os.getenv("GROQ_API_KEY")
+        
+        if not api_key:
+            logger.error("GROQ_API_KEY não encontrada nas variáveis de ambiente")
+            return "Erro: Chave da API não configurada"
         
         # URL da API do Groq
         url = "https://api.groq.com/openai/v1/chat/completions"
