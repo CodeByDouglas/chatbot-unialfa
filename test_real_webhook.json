@@ -1,0 +1,29 @@
+[
+  {
+    "messaging_product": "whatsapp",
+    "metadata": {
+      "display_phone_number": "556299805444",
+      "phone_number_id": "793408780514142"
+    },
+    "contacts": [
+      {
+        "profile": {
+          "name": "Douglas"
+        },
+        "wa_id": "556293977594"
+      }
+    ],
+    "messages": [
+      {
+        "from": "556293977594",
+        "id": "wamid.HBgMNTU2MjkzOTc3NTk0FQIAEhgWM0VCMDlDMEI3NzE0MTNGQjY1NjNDNAA=",
+        "timestamp": "1755886779",
+        "text": {
+          "body": "Quantas unidades a alfa tem?"
+        },
+        "type": "text"
+      }
+    ],
+    "field": "messages"
+  }
+]

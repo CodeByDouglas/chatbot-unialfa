@@ -5,12 +5,13 @@ Um chatbot inteligente desenvolvido para a UNIALFA que utiliza a API do Groq par
 ## 🚀 Funcionalidades
 
 - **Webhook do WhatsApp**: Recebe mensagens do WhatsApp Business API
-- **IA Inteligente**: Integração com Groq API para respostas contextuais
+- **IA Inteligente**: Integração otimizada com Groq API para respostas contextuais
 - **Histórico Completo**: Armazena conversas com identificação de usuário (aluno/bot)
 - **Contexto Dinâmico**: Sistema de documentação atualizável via API
 - **Limpeza Automática**: Remove histórico de usuários inativos há mais de 24h
 - **Logs Detalhados**: Sistema completo de logging para monitoramento
 - **Arquitetura Limpa**: Código organizado seguindo melhores práticas
+- **Otimização Groq**: Uso correto de roles (system, user, assistant) e parâmetros otimizados
 
 ## 🏗️ Arquitetura
 
@@ -130,6 +131,37 @@ INACTIVE_USER_HOURS=24
 1. Configure o webhook URL no painel do WhatsApp Business
 2. Implemente a função `enviar_resposta_whatsapp()` em `webhook.py`
 3. Adicione autenticação da API
+
+## 🤖 Otimizações da API Groq
+
+O sistema implementa otimizações avançadas para maximizar a qualidade das respostas da IA:
+
+### Estrutura de Mensagens
+- **Role System**: Contém o prompt principal e a base de conhecimento
+- **Role User**: Mensagens dos alunos/usuários
+- **Role Assistant**: Respostas anteriores do bot
+
+### Parâmetros Otimizados
+```python
+{
+    "temperature": 0.7,    # Criatividade balanceada
+    "max_tokens": 800,     # Limite de resposta
+    "top_p": 0.9          # Diversidade controlada
+}
+```
+
+### Processamento de Histórico
+- Conversão inteligente do histórico formatado em mensagens individuais
+- Identificação automática de roles baseada no usuário
+- Remoção de timestamps e formatação desnecessária
+- Manutenção do contexto conversacional
+
+### Benefícios
+- ✅ Respostas mais contextuais e precisas
+- ✅ Melhor compreensão do histórico da conversa
+- ✅ Redução de repetições desnecessárias
+- ✅ Otimização de tokens e custos
+- ✅ Conformidade com as melhores práticas da API Groq
 
 ## 📝 Exemplo de Uso
 
