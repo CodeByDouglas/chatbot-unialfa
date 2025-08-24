@@ -3,125 +3,50 @@ from typing import Dict, Optional, Any, List
 
 logger = logging.getLogger(__name__)
 
-def extrair_dados_whatsapp(data: Dict[str, Any]) -> Optional[Dict[str, str]]:
+def extrair_dados_whatsapp(data: List[Dict[str, Any]]) -> Optional[Dict[str, str]]:
     """
     Extrai os dados necessários do webhook do WhatsApp
     
     Args:
-        data: Dados JSON do webhook (pode ser dict ou list)
+        data: Dados JSON do webhook (formato lista padrão do WhatsApp)
         
     Returns:
         dict: Dicionário com numero, mensagem e timestamp ou None se não conseguir extrair
     """
     try:
-        # Verifica se data é uma lista (formato real do WhatsApp)
-        if isinstance(data, list) and len(data) > 0:
-            return extrair_dados_lista(data)
+        # Verifica se data é uma lista válida
+        if not isinstance(data, list) or len(data) == 0:
+            logger.warning("Dados do webhook não são uma lista válida")
+            return None
         
-        # Verifica se data é um dict (formato antigo/teste)
-        elif isinstance(data, dict):
-            return extrair_dados_dict(data)
-        
-        # Se não conseguir extrair, retorna None
-        return None
-        
-    except Exception as e:
-        logger.error(f"Erro ao extrair dados do WhatsApp: {str(e)}")
-        return None
-
-def extrair_dados_lista(data: List[Dict[str, Any]]) -> Optional[Dict[str, str]]:
-    """
-    Extrai dados do formato lista do webhook do WhatsApp
-    
-    Args:
-        data: Lista com dados do webhook
-        
-    Returns:
-        dict: Dados extraídos ou None
-    """
-    try:
         # Pega o primeiro item da lista
         webhook_data = data[0]
         
         # Verifica se tem mensagens
-        if 'messages' in webhook_data and len(webhook_data['messages']) > 0:
-            message = webhook_data['messages'][0]
-            
-            # Extrai número do telefone
-            numero = message.get('from', '')
-            
-            # Extrai mensagem
-            mensagem = extrair_conteudo_mensagem(message)
-            
-            # Extrai timestamp
-            timestamp = message.get('timestamp', '')
-            
-            # Extrai informações adicionais se disponíveis
-            metadata = webhook_data.get('metadata', {})
-            phone_number_id = metadata.get('phone_number_id', '')
-            display_phone_number = metadata.get('display_phone_number', '')
-            
-            # Extrai nome do contato se disponível
-            nome_contato = ""
-            if 'contacts' in webhook_data and len(webhook_data['contacts']) > 0:
-                contact = webhook_data['contacts'][0]
-                nome_contato = contact.get('profile', {}).get('name', '')
-            
-            return {
-                'numero': numero,
-                'mensagem': mensagem,
-                'timestamp': timestamp,
-                'phone_number_id': phone_number_id,
-                'display_phone_number': display_phone_number,
-                'nome_contato': nome_contato
-            }
+        if 'messages' not in webhook_data or len(webhook_data['messages']) == 0:
+            logger.warning("Nenhuma mensagem encontrada no webhook")
+            return None
         
-        return None
+        message = webhook_data['messages'][0]
+        
+        # Extrai dados essenciais
+        numero = message.get('from', '')
+        mensagem = extrair_conteudo_mensagem(message)
+        timestamp = message.get('timestamp', '')
+        
+        # Valida se os dados essenciais estão presentes
+        if not numero or not mensagem:
+            logger.warning("Dados essenciais (numero ou mensagem) não encontrados")
+            return None
+        
+        return {
+            'numero': numero,
+            'mensagem': mensagem,
+            'timestamp': timestamp
+        }
         
     except Exception as e:
-        logger.error(f"Erro ao extrair dados da lista: {str(e)}")
-        return None
-
-def extrair_dados_dict(data: Dict[str, Any]) -> Optional[Dict[str, str]]:
-    """
-    Extrai dados do formato dict (formato antigo/teste)
-    
-    Args:
-        data: Dict com dados do webhook
-        
-    Returns:
-        dict: Dados extraídos ou None
-    """
-    try:
-        # Estrutura típica do webhook do WhatsApp Business API (formato antigo)
-        if 'entry' in data and len(data['entry']) > 0:
-            entry = data['entry'][0]
-            
-            if 'changes' in entry and len(entry['changes']) > 0:
-                change = entry['changes'][0]
-                
-                if 'value' in change and 'messages' in change['value']:
-                    message = change['value']['messages'][0]
-                    
-                    # Extrai número do telefone
-                    numero = message.get('from', '')
-                    
-                    # Extrai mensagem
-                    mensagem = extrair_conteudo_mensagem(message)
-                    
-                    # Extrai timestamp
-                    timestamp = message.get('timestamp', '')
-                    
-                    return {
-                        'numero': numero,
-                        'mensagem': mensagem,
-                        'timestamp': timestamp
-                    }
-        
-        return None
-        
-    except Exception as e:
-        logger.error(f"Erro ao extrair dados do dict: {str(e)}")
+        logger.error(f"Erro ao extrair dados do WhatsApp: {str(e)}")
         return None
 
 def extrair_conteudo_mensagem(message: Dict[str, Any]) -> str:

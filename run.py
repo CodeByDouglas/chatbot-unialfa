@@ -1,13 +1,8 @@
-import logging
 from app import create_app
 from app.services.cleanup_service import iniciar_cleanup_service
 from config import Config
+import logging
 
-# Configuração de logging
-logging.basicConfig(
-    level=getattr(logging, Config.LOG_LEVEL),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 def main():

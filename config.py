@@ -28,8 +28,8 @@ class Config:
     LOG_FILE = 'logs/chatbot.log'
     
     # Configurações de limpeza automática
-    CLEANUP_INTERVAL_HOURS = int(os.environ.get('CLEANUP_INTERVAL_HOURS', 24))
-    INACTIVE_USER_HOURS = int(os.environ.get('INACTIVE_USER_HOURS', 24))
+    CLEANUP_INTERVAL_HOURS = float(os.environ.get('CLEANUP_INTERVAL_HOURS', 1))  
+    INACTIVE_USER_HOURS = float(os.environ.get('INACTIVE_USER_HOURS', 1))       
 
 class DevelopmentConfig(Config):
     """Configurações para desenvolvimento"""

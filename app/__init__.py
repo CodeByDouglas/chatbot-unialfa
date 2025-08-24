@@ -16,12 +16,21 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
     
     # Configuração de logging
+    from config import Config
+    
+    # Configuração básica de logging
+    logging.basicConfig(
+        level=getattr(logging, Config.LOG_LEVEL),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Configuração de arquivo de log (apenas em produção)
     if not app.debug:
         if not os.path.exists('logs'):
             os.mkdir('logs')
         file_handler = RotatingFileHandler('logs/chatbot.log', maxBytes=10240, backupCount=10)
         file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         ))
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)

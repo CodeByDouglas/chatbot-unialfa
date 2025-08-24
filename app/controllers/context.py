@@ -22,7 +22,7 @@ def atualizar_contexto():
     """
     try:
         # Log da requisição recebida
-        logger.info("Requisição para atualizar contexto recebida")
+        logger.info("Requisição para atualizar contexto recebida via API")
         
         # Obtém os dados da requisição
         data = request.get_json()

@@ -46,7 +46,7 @@ class Database:
                     )
                 ''')
                 
-                # Recriar view para mensagens por número (incluindo o campo user)
+                # Cria view para buscar mensagens por número (ordem cronológica)
                 cursor.execute('DROP VIEW IF EXISTS mensagens_por_numero')
                 cursor.execute('''
                     CREATE VIEW mensagens_por_numero AS
@@ -56,7 +56,7 @@ class Database:
                         user,
                         horario_data
                     FROM historico
-                    ORDER BY horario_data DESC
+                    ORDER BY horario_data ASC
                 ''')
                 
                 conn.commit()
@@ -156,7 +156,7 @@ class Database:
     # ===== MÉTODOS DE VIEW =====
     
     def obter_mensagens_por_numero(self, numero):
-        """Obtém todas as mensagens de um número específico usando a view"""
+        """Obtém todas as mensagens de um número específico usando a view (ordem cronológica)"""
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -164,7 +164,7 @@ class Database:
                     SELECT mensagem, user, horario_data
                     FROM mensagens_por_numero
                     WHERE numero = ?
-                    ORDER BY horario_data DESC
+                    ORDER BY horario_data ASC
                 ''', (numero,))
                 return cursor.fetchall()
         except Exception as e:
