@@ -66,6 +66,7 @@ def webhook():
         # Extrai dados do WhatsApp usando utilitário
         dados_whatsapp = extrair_dados_whatsapp(data)
         
+        
         if not dados_whatsapp:
             logger.warning("Não foi possível extrair dados do webhook")
             return jsonify({"status": "success", "message": "Dados não processados"}), 200
@@ -82,7 +83,7 @@ def webhook():
         logger.info(f"📱 Mensagem de {numero}: {mensagem_atual}")
         
         # Verifica se é o número administrativo
-        if numero == "556299805444":
+        if numero == "556293977594":
             logger.info(f"🔧 Comando administrativo detectado de {numero}")
             
             # Comando: "admin - contexto atual"
@@ -101,7 +102,7 @@ def webhook():
                 else:
                     logger.error(f"❌ Erro ao enviar contexto atual para {numero}")
                 
-                return jsonify({"status": "success", "message": documentacao}), 200
+                return jsonify({"status": "success", "message": documentacao, "numero": numero}), 200
             
             # Comando: "admin - novo contexto contexto: [novo contexto]"
             elif mensagem_atual.strip().lower().startswith("admin - novo contexto:"):
@@ -132,7 +133,7 @@ def webhook():
                             else:
                                 logger.error(f"❌ Erro ao enviar confirmação para {numero}")
                             
-                            return jsonify({"status": "success", "message": "Contexto atualizado"}), 200
+                            return jsonify({"status": "success", "message": "Contexto atualizado", "numero": numero}), 200
                         else:
                             logger.error("❌ Erro ao inserir novo contexto")
                             mensagem_erro = "❌ Erro ao atualizar contexto no banco de dados"
@@ -164,7 +165,7 @@ def webhook():
         documentacoes = db.obter_contexto()
         documentacao = documentacoes[0] if documentacoes else "Documentação não disponível"
         
-        logger.info(f"🤖 Enviando para Groq: histórico={len(historico_mensagens)} msgs, doc={len(documentacao)} chars")
+        logger.info(f"🤖 Enviando para Groq")
         
         # Chama a API do Groq
         resposta_groq = enviar_para_groq(
@@ -175,6 +176,39 @@ def webhook():
         
         logger.info(f"🤖 Resposta do Groq: {resposta_groq[:100]}...")
         
+        # Verifica se a requisição para o Groq foi bem-sucedida
+        if resposta_groq.startswith("Erro:") or resposta_groq.startswith("Erro na API:") or resposta_groq.startswith("Erro de conexão:") or resposta_groq.startswith("Erro interno:"):
+            logger.error(f"❌ Erro na API do Groq: {resposta_groq}")
+            
+            # Mensagem de erro para o usuário
+            mensagem_erro_usuario = "Serviços indisponíveis no momento, entre em contato com esse número: (62) 993977594"
+            
+            # Salva a mensagem de erro no histórico (user = 'Bot UNIALFA')
+            db.inserir_historico(numero, mensagem_erro_usuario, user='Bot UNIALFA')
+            logger.info(f"💾 Mensagem de erro salva no histórico para {numero}")
+            
+            # Envia mensagem de erro para o usuário
+            sucesso_envio = enviar_resposta_whatsapp(numero, mensagem_erro_usuario)
+            
+            if sucesso_envio:
+                logger.info(f"✅ Mensagem de erro enviada com sucesso para {numero}")
+            else:
+                logger.error(f"❌ Erro ao enviar mensagem de erro para {numero}")
+            
+            # Envia alerta para o número administrativo
+            numero_admin = "556293977594"
+            mensagem_alerta_admin = "Chatbot fora de serviço, verificar limites na Groq"
+            
+            sucesso_alerta_admin = enviar_resposta_whatsapp(numero_admin, mensagem_alerta_admin)
+            
+            if sucesso_alerta_admin:
+                logger.info(f"✅ Alerta administrativo enviado com sucesso para {numero_admin}")
+            else:
+                logger.error(f"❌ Erro ao enviar alerta administrativo para {numero_admin}")
+            
+            return jsonify({"status": "error", "message": mensagem_erro_usuario, "numero": numero}), 200
+        
+        # Fluxo normal - requisição foi bem-sucedida
         # Salva a resposta do bot no histórico (user = 'Bot UNIALFA')
         db.inserir_historico(numero, resposta_groq, user='Bot UNIALFA')
         logger.info(f"💾 Resposta do bot salva no histórico para {numero}")
@@ -188,7 +222,7 @@ def webhook():
             logger.error(f"❌ Erro ao enviar resposta para {numero}")
         
         # Resposta de sucesso para o WhatsApp
-        return jsonify({"status": "success", "message": resposta_groq}), 200
+        return jsonify({"status": "success", "message": resposta_groq, "numero": numero}), 200
         
     except Exception as e:
         logger.error(f"❌ Erro ao processar webhook: {str(e)}")
